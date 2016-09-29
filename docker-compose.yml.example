@@ -1,0 +1,20 @@
+webapp:
+  image: registry.cn-hangzhou.aliyuncs.com/koolay/hug:latest
+  #build: .
+  volumes:
+   - <project root>:/home/app/webapp
+  env_file: .env
+  ports:
+  - "8000:8000"
+
+nginx:
+  image: daocloud.io/library/nginx:1.10.0-alpine
+  #links:
+   #- "webapp"
+  volumes:
+   - ./nginx/webapp.conf:/etc/nginx/conf.d/default.conf
+   - ./nginx/static.conf:/etc/nginx/conf.d/static.conf
+   - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+   - <static site>:/home/app/webapp/public
+  ports:
+  - "80:80"

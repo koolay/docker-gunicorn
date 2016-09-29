@@ -1,0 +1,25 @@
+server {
+	listen   80;
+	server_name api.myapp-dev.com;
+	proxy_set_header REMOTE_ADDR $remote_addr;
+    charset utf-8;
+
+	location / {
+		proxy_redirect  off;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_pass http://172.17.0.1:8000;
+
+        if ($request_method = 'OPTIONS') {
+
+		add_header Access-Control-Allow-Origin $allow_origin;
+        add_header Access-Control-Allow-Credentials 'true';
+        add_header Access-Control-Max-Age $cors_max_age;
+        add_header Access-Control-Allow-Methods $cors_allow_methods;
+        add_header Access-Control-Allow-Headers $cors_allow_headers;
+        return 204;
+
+        }
+
+	}
+}
