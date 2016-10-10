@@ -1,25 +1,55 @@
 server {
 	listen   80;
-	server_name api.myapp-dev.com;
-	proxy_set_header REMOTE_ADDR $remote_addr;
+	server_name myapp-dev.com;
+    root /home/app/webapp/public;
+	index index.html;
     charset utf-8;
 
 	location / {
-		proxy_redirect  off;
-		proxy_set_header Host $host;
-		proxy_set_header X-Real-IP $remote_addr;
-		proxy_pass http://172.17.0.1:8000;
-
-        if ($request_method = 'OPTIONS') {
-
-		add_header Access-Control-Allow-Origin $allow_origin;
-        add_header Access-Control-Allow-Credentials 'true';
-        add_header Access-Control-Max-Age $cors_max_age;
-        add_header Access-Control-Allow-Methods $cors_allow_methods;
-        add_header Access-Control-Allow-Headers $cors_allow_headers;
-        return 204;
-
-        }
-
+		root /home/app/webapp/public;
+		try_files $uri $uri/ /index.html;
+		proxy_cookie_path $uri /;
 	}
+
+    location ~ /api/ {
+
+        rewrite ^/api/(.*) /$1 break;
+        proxy_redirect  off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_pass http://172.17.0.1:8000/$uri$is_args$args;
+
+    }
+
+	location /denied {
+		return 403;
+	}
+    location ~* \.(?:ttf|ttc|otf|eot|woff|woff2)$ {
+      add_header "Access-Control-Allow-Origin" "*";
+      expires 1M;
+      access_log off;
+      add_header Cache-Control "public";
+    }
+    # cache.appcache, your document html and data
+    location ~* \.(?:manifest|appcache|html?|xml|json)$ {
+      expires -1;
+    }
+
+    # Feed
+    location ~* \.(?:rss|atom)$ {
+      expires 1h;
+    }
+
+    # Media: images, icons, video, audio, HTC
+    location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc)$ {
+      expires 1M;
+      access_log off;
+      add_header Cache-Control "public";
+    }
+
+    # CSS and Javascript
+    location ~* \.(?:css|js)$ {
+      expires 1y;
+      access_log off;
+    }
 }
